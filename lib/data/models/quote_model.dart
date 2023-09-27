@@ -1,25 +1,29 @@
+// ignore_for_file: non_constant_identifier_names
+
 class QuoteModel {
-  final String code;
-  final String name;
-  final DateTime createdAt;
-  final double ask;
-  final double bid;
+  final double cotacaoCompra;
+  final double cotacaoVenda;
+  final String dataHoraCotacao;
+  bool selecionado;
 
   QuoteModel({
-    required this.code,
-    required this.name,
-    required this.createdAt,
-    required this.ask,
-    required this.bid,
+    required this.cotacaoCompra,
+    required this.cotacaoVenda,
+    required this.dataHoraCotacao,
+    required this.selecionado,
   });
 
-  factory QuoteModel.fromMap(Map<String, dynamic> map) {
-    return QuoteModel(
-      code: map['code'],
-      name: map['name'],
-      createdAt: map['createdAt'],
-      ask: map['ask'] * 1.0,
-      bid: map['bid'] * 1.0,
-    );
-  }
+  factory QuoteModel.fromJson(Map<String, dynamic> map) => QuoteModel(
+        cotacaoCompra: map['cotacaoCompra'] * 1.0,
+        cotacaoVenda: map['cotacaoVenda'] * 1.0,
+        dataHoraCotacao: map['dataHoraCotacao'],
+        selecionado: false,
+      );
+
+  Map<String, dynamic> toJson() => {
+        "cotacaoCompra": cotacaoCompra,
+        "cotacaoVenda": cotacaoVenda,
+        "dataHoraCotacao": dataHoraCotacao,
+        "selecionado": selecionado,
+      };
 }
