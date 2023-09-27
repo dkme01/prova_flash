@@ -35,12 +35,7 @@ class _HomePageState extends State<HomePage> {
 
   Future saveToPDF() async {
     final pdf = pw.Document();
-    Directory root = await getTemporaryDirectory();
-    String directoryPath = '${root.path}/cotacaoDolar';
-    await Directory(directoryPath)
-        .create(recursive: true); // the error because of this line
-    String filePath =
-        '$directoryPath/Relatório cotações ${DateFormat('dd/MM/yyyy').format(DateTime.now().subtract(const Duration(hours: 3)))}.pdf';
+    final root = await getApplicationDocumentsDirectory();
 
     pdf.addPage(
       pw.Page(
@@ -55,8 +50,15 @@ class _HomePageState extends State<HomePage> {
       ),
     );
 
-    final file = File(filePath);
-    file.writeAsBytesSync(await pdf.save());
+    // final file = File(filePath);
+    // file.writeAsBytesSync(await pdf.save());
+    final newFile = File(
+        '${root.path}/Relatório cotações ${DateFormat('dd/MM/yyyy').format(DateTime.now().subtract(const Duration(hours: 3)))}.pdf');
+    if (!newFile.existsSync()) {
+      File(newFile.path).create(recursive: true);
+    } else {
+      newFile.writeAsBytesSync(await pdf.save());
+    }
   }
 
   @override
