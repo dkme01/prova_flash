@@ -5,8 +5,8 @@
     <uses-permission android:name="android.permission.READ_EXTERNAL_STORAGE" />
 
     <application
-        android:label="prova_flash"
-        android:name="${prova_flash}"
+        android:label="Prova Flash"
+        android:name="${applicationName}"
         android:icon="@mipmap/ic_launcher"
         android:requestLegacyExternalStorage="true">
 

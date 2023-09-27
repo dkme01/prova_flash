@@ -37,6 +37,7 @@ android {
 
     defaultConfig {
         applicationId "dkme01.flash_courier.prova_flash"
+
         // You can update the following values to match your application needs.
         // For more information, see: https://docs.flutter.dev/deployment/android#reviewing-the-gradle-build-configuration.
         minSdkVersion flutter.minSdkVersion
@@ -46,16 +47,15 @@ android {
     }
 
     buildTypes {
+        debug {
+            manifestPlaceholders = [consumerAppId: "com.example.prova_flash"]
+        }
         release {
-            signingConfig signingConfigs.debug
+            manifestPlaceholders = [consumerAppId: "com.example.prova_flash"]
         }
     }
 }
 
 flutter {
     source '../..'
-}
-
-dependencies {
-    implementation 'com.google.android.material:material:1.9.0'
 }
