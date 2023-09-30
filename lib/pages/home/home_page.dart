@@ -1,12 +1,15 @@
 import 'dart:io';
+import 'dart:developer' as developer;
 
 import 'package:flutter/material.dart';
+import 'package:flutter_pdfview/flutter_pdfview.dart';
 import 'package:intl/intl.dart';
 import 'package:path_provider/path_provider.dart';
 import 'package:prova_flash/data/http/http_client.dart';
 import 'package:prova_flash/data/models/quote_model.dart';
 import 'package:prova_flash/data/repositories/quote_repository.dart';
 import 'package:pdf/widgets.dart' as pw;
+import 'package:prova_flash/pages/pdf_viewer/pdf_page.dart';
 
 class HomePage extends StatefulWidget {
   const HomePage({super.key});
@@ -34,30 +37,42 @@ class _HomePageState extends State<HomePage> {
   }
 
   Future saveToPDF() async {
-    final pdf = pw.Document();
-    final root = await getApplicationDocumentsDirectory();
+    try {
+      final pdf = pw.Document();
+      final root = await getApplicationDocumentsDirectory();
 
-    pdf.addPage(
-      pw.Page(
-        build: (pw.Context pdfContext) {
-          return pw.Column(
-            children: quoteList
-                .map((item) => pw.Text(
-                    'Dólar cotado em: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(item.dataHoraCotacao))}\nValor de compra: \$${item.cotacaoCompra.toStringAsFixed(2)} \nValor de venda: \$${item.cotacaoVenda.toStringAsFixed(2)}'))
-                .toList(),
-          );
-        },
-      ),
-    );
+      pdf.addPage(
+        pw.Page(
+          build: (pw.Context pdfContext) {
+            return pw.Column(
+              children: quoteList
+                  .map((item) => pw.Text(
+                      'Dólar cotado em: ${DateFormat('dd/MM/yyyy').format(DateTime.parse(item.dataHoraCotacao))}\nValor de compra: \$${item.cotacaoCompra.toStringAsFixed(2)} \nValor de venda: \$${item.cotacaoVenda.toStringAsFixed(2)}'))
+                  .toList(),
+            );
+          },
+        ),
+      );
 
-    // final file = File(filePath);
-    // file.writeAsBytesSync(await pdf.save());
-    final newFile = File(
-        '${root.path}/Relatório cotações ${DateFormat('dd/MM/yyyy').format(DateTime.now().subtract(const Duration(hours: 3)))}.pdf');
-    if (!newFile.existsSync()) {
-      File(newFile.path).create(recursive: true);
-    } else {
-      newFile.writeAsBytesSync(await pdf.save());
+      // final file = File(filePath);
+      // file.writeAsBytesSync(await pdf.save());
+      final newFile = File(
+          '${root.path}/Relatório cotações ${DateFormat('dd/MM/yyyy').format(DateTime.now().subtract(const Duration(hours: 3)))}.pdf');
+      if (!newFile.existsSync()) {
+        File(newFile.path).create(recursive: true);
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => PdfScreen(path: newFile.path)));
+      } else {
+        newFile.writeAsBytesSync(await pdf.save());
+        Navigator.push(
+            context,
+            MaterialPageRoute(
+                builder: (context) => PdfScreen(path: newFile.path)));
+      }
+    } catch (error) {
+      developer.log(error.toString(), name: 'PDF Error', error: true);
     }
   }
 
@@ -117,7 +132,10 @@ class _HomePageState extends State<HomePage> {
                     backgroundColor:
                         MaterialStateProperty.all(Colors.blue.shade900)),
                 onPressed: () async {
-                  List<QuoteModel> quoteListCopy = quoteList;
+                  setState(() {
+                    isLoading = true;
+                  });
+                  List<QuoteModel> quoteListCopy = [...quoteList];
 
                   List<QuoteModel> quotedDate = await QuoteRepository(
                           client: HttpClient())
@@ -140,20 +158,25 @@ class _HomePageState extends State<HomePage> {
                       ),
                     );
                   } else {
-                    quoteListCopy.add(quotedDate[0]);
+                    quoteListCopy = [...quoteList, quotedDate[0]];
                   }
 
                   setState(() {
+                    isLoading = false;
                     quoteList = quoteListCopy;
                   });
                 },
                 child: const Text('Confirmar')),
-            Expanded(
-              child: ListView.builder(
-                  padding: const EdgeInsets.only(top: 10.0),
-                  itemCount: quoteList.length,
-                  itemBuilder: buildItem),
-            ),
+            isLoading
+                ? const Center(
+                    child: CircularProgressIndicator(),
+                  )
+                : Expanded(
+                    child: ListView.builder(
+                        padding: const EdgeInsets.only(top: 10.0),
+                        itemCount: quoteList.length,
+                        itemBuilder: buildItem),
+                  ),
             quoteList.any((quoteCopy) => quoteCopy.selecionado == true)
                 ? ElevatedButton(
                     style: ButtonStyle(
